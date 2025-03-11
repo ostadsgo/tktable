@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 
+
 class Data:
     pass
+
 
 class TableFrame(ttk.Frame):
     def __init__(self, master, **kwargs):
@@ -31,20 +33,34 @@ class TableFrame(ttk.Frame):
         self.data_frame.columnconfigure(0, weight=1)
 
     def make_header(self):
-        all_checkbutton = ttk.Checkbutton(self.header_frame, text="", variable=self.check_all_var)
+        all_checkbutton = ttk.Checkbutton(
+            self.header_frame, text="", variable=self.check_all_var
+        )
         all_checkbutton.pack(side=tk.LEFT, fill=tk.X, expand=True)
         for header in self.headers:
             ttk.Button(self.header_frame, text=header).pack(**self.pack_opt)
 
     def create_row(self, values=[]):
-        row_frame  = ttk.Frame(self.data_frame, background="red")
+        row_frame = ttk.Frame(self.data_frame, background="red")
         self.var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(row_frame, text="", variable=self.var, command=self.check_row).grid(row=0, column=0, sticky="e")
-        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(row=0, column=1, sticky="new")
-        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(row=0, column=2, sticky="new")
-        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(row=0, column=3, sticky="new")
-        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(row=0, column=4, sticky="new")
-        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(row=0, column=5, sticky="new")
+        ttk.Checkbutton(
+            row_frame, text="", variable=self.var, command=self.check_row
+        ).grid(row=0, column=0, sticky="e")
+        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(
+            row=0, column=1, sticky="new"
+        )
+        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(
+            row=0, column=2, sticky="new"
+        )
+        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(
+            row=0, column=3, sticky="new"
+        )
+        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(
+            row=0, column=4, sticky="new"
+        )
+        ttk.Combobox(row_frame, values=("Value 1", "Value 2", "Value 3")).grid(
+            row=0, column=5, sticky="new"
+        )
         row_frame.pack(fill=tk.X, expand=True)
         self.row_frames.append(row_frame)
 
@@ -102,13 +118,12 @@ class MainFrame(ttk.Frame):
         self.columnconfigure(0, weight=1)
 
 
-
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Table Like Widget")
         self.geometry("900x600")
-        # Create mainframe 
+        # Create mainframe
         mainframe = MainFrame(self)
         mainframe.grid(row=0, column=0, sticky="wesn")
         self.rowconfigure(0, weight=1)
