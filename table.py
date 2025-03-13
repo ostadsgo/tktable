@@ -1,6 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
 
+### BUGS:
+# - if len row_frames less than zero remove should stop
+# - refactoration.
+
+
 
 class TableFrame(ttk.Frame):
     def __init__(self, master, **kwargs):
@@ -19,8 +24,8 @@ class TableFrame(ttk.Frame):
         self.style = ttk.Style()
         self.style.configure("DataFrame.TFrame", background="#708090")
         self.style.configure("HeaderFrame.TFrame", background="#b6927b")
-        self.style.configure("RowFrame.TFrame", background="#789978") 
-        self.style.configure("HighlightRowFrame.TFrame", background="#ff0000") 
+        self.style.configure("RowFrame.TFrame", background="#737373") 
+        self.style.configure("HighlightRowFrame.TFrame", background="#984936") 
 
         ### Widgets
         # Frames
@@ -58,14 +63,21 @@ class TableFrame(ttk.Frame):
                 row=0, column=index, sticky="we", padx=5
             )
     def check_all_rows(self):
-        # if checkbutton checked
+        # if check_all checkbutton checked
         if self.check_all_var.get():
             for var in self.check_row_vars:
                 var.set(True)
+            # highlight all rows
+            print(len(self.row_frames))
+            for row in self.row_frames:
+                print("-----", row, type(row))
+                row["style"] = "HighlightRowFrame.TFrame"
         else:
             for var in self.check_row_vars:
                 var.set(False)
-
+            # unhighlight
+            for row in self.row_frames:
+                row["style"] = "RowFrame.TFrame"
 
 
     def highlight_row(self, check_var, row):
@@ -83,20 +95,18 @@ class TableFrame(ttk.Frame):
         row_frame = ttk.Frame(self.data_frame, style="RowFrame.TFrame", padding=(5, 10))
         row_frame.grid(row=len(self.row_frames), column=0, sticky="news", padx=5, pady=5)
 
-        # store row_frame in row_frame list.
+        # store row_frame in row_frames list.
         self.row_frames.append(row_frame)
-        # save current row frame in curr_row_frame
-        curr_row_frame = self.row_frames[self.row_number]
         
         # Checkbutton var
-        self.check_row_vars.append(tk.BooleanVar(value=False))
-        check_var = self.check_row_vars[self.row_number]
+        check_var = tk.BooleanVar(value=False)
+        self.check_row_vars.append(check_var)
+        # check_var.set(False)
 
         # Checkbutton widget
         check_row_button = ttk.Checkbutton(row_frame, text="", variable=check_var)
         check_row_button["command"] = lambda: self.highlight_row(check_var, row_frame)
         check_row_button.grid(row=0, column=0, sticky="we")
-        self.row_number += 1
 
         # Widget :: Comboboxes for a row
         for i, values in enumerate(row_values, 1):
@@ -104,11 +114,81 @@ class TableFrame(ttk.Frame):
             combo.current(0)
             combo.grid(row=0, column=i, sticky="we", padx=5)
 
-        # Growth size same with header growth size
+        # Growth size same as header growth size
         row_frame.rowconfigure(0, weight=1)
         # Make it dynamic as header_frame needed
         for i in range(1, 6):
             row_frame.columnconfigure(i, weight=1)
+
+    
+
+    def remove_row(self):
+        checked_indeces = sorted([i for i, var in enumerate(self.check_row_vars) if var.get()], reverse=True)
+        for index in checked_indeces:
+            self.row_frames[index].destroy()
+            del self.row_frames[index]
+            del self.check_row_vars[index]
+        print(len(self.row_frames), len(self.check_row_vars))
+        self.check_all_var.set(False)
+
+        # no row checked: delete last row
+        if len(self.row_frames) > 0 and not checked_indeces:
+            last_row = self.row_frames.pop()
+            last_row.destroy()
+            self.check_row_vars.pop()
+
+
+
+
+        
+
+
+
+
+
+        
+
+
+
+
+
+        # print("-"* 30)
+        # print("len row_frames", self.row_frames, "row_number", self.row_number)
+        # print("-"* 30)
+
+        # if there is any row
+        # if len(self.row_frames) > 0:
+        #     # check if any rows selected remove it
+        #     # iterate over checkbutton's var
+        #     for index, var in enumerate(self.check_row_vars.copy()):
+        #         # if a row checked
+        #         if var.get():
+        #             # row frame to destroy
+        #             self.row_frames[index].destroy()
+        #             # also delete the var from vars list
+        #             del_item = self.check_row_vars.pop(index)
+        #             print(f"item number {index} name {del_item} deleted.")
+        #             print('len', len(self.row_frames))
+
+        
+        #
+        #     # if check_all_button check we must unchecked it after removing all rows
+        #     if self.check_all_var.get():
+        #         self.check_all_var.set(False)
+        #
+        #     # if no row selected
+        #     for var in self.check_row_vars:
+        #         if var.get():
+        #             break
+        #     else:
+        #         self.row_frames.pop().destroy()
+        #
+        #     self.row_number -= 1
+
+
+
+
+
 
 
 class ActionFrame(ttk.Frame):
@@ -132,9 +212,7 @@ class ActionFrame(ttk.Frame):
         self.table.create_row(row_values=val)
 
     def remove_row(self):
-        # Must check if multiple row_checkbutton checked must delete them
-        # if no row_checkbutton checked delete last row
-        pass
+        self.table.remove_row()
 
     def import_data(self):
         pass
@@ -167,7 +245,7 @@ class App(tk.Tk):
 
         # Root window options
         self.title("Table Like Widget")
-        self.geometry("900x600")
+        self.geometry("600x400")
 
         # Main frame
         mainframe = MainFrame(self, relief="solid", padding=5)
