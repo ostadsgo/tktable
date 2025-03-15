@@ -1,5 +1,60 @@
+# TODO: get_row to get data of a row: get_row(0)
+# get_cell_data: to get data of a cell: get_cell_data(row=0, column=2)
+# add_hi -> add hihglight for a row
+# clear_hi -> clear highlight for a row
+# NOTE: future ntoe
+
+import pickle
 import tkinter as tk
 from tkinter import ttk
+
+from rfile import *
+
+
+class Data:
+    def __init__(self):
+        self.ev_not_exist = ""
+        self.g_dict = {}
+        self.rf = ""
+        self.read_rfile("./Data")
+
+    def read_rfile(self, folder_path):
+        self.rf = RFile(folder_path)
+        flag_daq, ev = self.rf.check_all_dir()
+        if flag_daq != True:
+            self.ev_not_exist = ev
+
+        all_gs = self.rf.find_all_grid()
+        g_dict_ = self.rf.grid_track_dict(all_gs)
+        self.g_dict = self.rf.convert_to_g(g_dict_)
+
+    def save_pickle(self):
+        # save data(g_dict) as json file
+        with open("./sim_data.pickle", "wb") as pickle_file:
+            pickle.dump(self.g_dict, pickle_file)
+            print("pickle file saved.")
+
+    def load_pickle(self):
+        with open("./sim_data.pickle", "rb") as pickle_file:
+            pickle.load(pickle_file)
+
+    def prepare_values(self):
+        a = []
+        b = []
+        c = []
+        for x, y in self.g_dict.items():
+            a.append(x)
+            for t, e in y.items():
+                b.append(t)
+                for z in e:
+                    c.append(z)
+
+        return a, b, c
+
+    def prepare_test(self):
+        pass
+
+
 
 
 class TableFrame(ttk.Frame):
@@ -40,10 +95,9 @@ class TableFrame(ttk.Frame):
         # TODO: Number in the reange should be dynamic which is the len of the header row in total (check, button , etc)
         # FIX: We can achive this by finding out children of the header_frame
         # Well the problem is I would like to give less growth rate for the checkbox as first widget
-        self.header_frame.columnconfigure(0, weight=1)
+        # self.header_frame.columnconfigure(0, weight=1)
         for i in range(1, 6):  # 6 is the len of the columns in header_frame
-            self.header_frame.columnconfigure(i, weight=99)
-
+            self.header_frame.columnconfigure(i, weight=1)
         # Data Frame
         self.data_frame.columnconfigure(0, weight=1)
 
@@ -79,8 +133,6 @@ class TableFrame(ttk.Frame):
             row["style"] = "HighlightRowFrame.TFrame"
             return
         row["style"] = "RowFrame.TFrame"
-
-        # row_frame["style"] = "RowFrame.TFrame"
 
     def populate_combobox_values(self, values):
         pass
@@ -153,10 +205,17 @@ class ActionFrame(ttk.Frame):
     def add_row(self):
         import random
 
+        # create random data
         val = [
             [random.randrange(100) for i in range(random.randrange(1, 10))]
             for i in range(5)
         ]
+
+        # read rfile
+        data = Data()
+        a, b, c= data.prepare_values()
+        val = [a, b, c, [1, 2, 3], [3, 2, 1]]
+
         self.table.create_row(row_values=val)
 
     def remove_row(self):
