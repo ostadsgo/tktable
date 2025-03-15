@@ -4,113 +4,69 @@
 # clear_hi -> clear highlight for a row
 # NOTE: future ntoe
 
-import pickle
 import tkinter as tk
 from tkinter import ttk
 
-from rfile import *
-
-
-class Data:
-    def __init__(self):
-        self.ev_not_exist = ""
-        self.g_dict = {}
-        self.rf = ""
-        self.read_rfile("./Data")
-
-    def read_rfile(self, folder_path):
-        self.rf = RFile(folder_path)
-        flag_daq, ev = self.rf.check_all_dir()
-        if flag_daq != True:
-            self.ev_not_exist = ev
-
-        all_gs = self.rf.find_all_grid()
-        g_dict_ = self.rf.grid_track_dict(all_gs)
-        self.g_dict = self.rf.convert_to_g(g_dict_)
-
-    def save_pickle(self):
-        # save data(g_dict) as json file
-        with open("./sim_data.pickle", "wb") as pickle_file:
-            pickle.dump(self.g_dict, pickle_file)
-            print("pickle file saved.")
-
-    def load_pickle(self):
-        with open("./sim_data.pickle", "rb") as pickle_file:
-            pickle.load(pickle_file)
-
-    def prepare_values(self):
-        a = []
-        b = []
-        c = []
-        for x, y in self.g_dict.items():
-            a.append(x)
-            for t, e in y.items():
-                b.append(t)
-                for z in e:
-                    c.append(z)
-
-        return a, b, c
-
-    def prepare_test(self):
-        pass
-
-
-
 
 class TableFrame(ttk.Frame):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, headers, **kwargs):
         super().__init__(master, **kwargs)
 
+        self.headers = headers
         ### Variables
         self.rows = []
         self.row_frames = []
         self.cells = []
         self.check_all_var = tk.BooleanVar(value=False)
         self.check_row_vars = []
-        self.row_number = 0
         # make color dict
 
         ### Styles
+        # lightgray : d3d3d3
         self.style = ttk.Style()
-        self.style.configure("DataFrame.TFrame", background="#708090")
-        self.style.configure("HeaderFrame.TFrame", background="#b6927b")
-        self.style.configure("RowFrame.TFrame", background="#737373")
-        self.style.configure("HighlightRowFrame.TFrame", background="#984936")
+        self.style.configure("DataFrame.TFrame", background="lightgray")
+        self.style.configure("HeaderFrame.TFrame", background="#d3d3d3")
+        self.style.configure("RowFrame.TFrame", background="#c8c8c8")
+        self.style.configure("HighlightRowFrame.TFrame", background="#AC5858")
 
         ### Widgets
         # Frames
-        self.header_frame = ttk.Frame(self, style="HeaderFrame.TFrame", padding=10)
-        self.data_frame = ttk.Frame(self, style="DataFrame.TFrame")
+        # data_frame padding + row_frame padding = header_frame padding
+        self.header_frame = ttk.Frame(self, style="HeaderFrame.TFrame", padding=(10, 0)) 
+        self.data_frame = ttk.Frame(self, style="DataFrame.TFrame", relief=tk.GROOVE, padding=5)
 
         ### Grid widgets
         self.header_frame.grid(row=0, column=0, sticky="news")
-        self.data_frame.grid(row=1, column=0, sticky="news")
+        self.data_frame.grid(row=1, column=0, sticky="news", pady=5)
 
-        ### Growth size
-        self.rowconfigure(0, weight=1)
+        ### Table growth size
+        self.rowconfigure(0, weight=1) 
         self.rowconfigure(1, weight=99)
         self.columnconfigure(0, weight=1)
         # Header Frame
         self.header_frame.rowconfigure(0, weight=1)
-        # TODO: Number in the reange should be dynamic which is the len of the header row in total (check, button , etc)
-        # FIX: We can achive this by finding out children of the header_frame
-        # Well the problem is I would like to give less growth rate for the checkbox as first widget
-        # self.header_frame.columnconfigure(0, weight=1)
-        for i in range(1, 6):  # 6 is the len of the columns in header_frame
+        # Header widgets growth size
+        print(len(self.headers))
+        for i in range(1, len(self.headers) + 1):  
             self.header_frame.columnconfigure(i, weight=1)
         # Data Frame
         self.data_frame.columnconfigure(0, weight=1)
 
-    def create_header(self, headers=[]):
+        ### call methods
+        self.create_header()
+
+    def create_header(self):
         check_all_button = ttk.Checkbutton(
-            self.header_frame, text="", variable=self.check_all_var
+            self.header_frame,
+            text="",
+            variable=self.check_all_var,
+            command=self.check_all_rows,
         )
-        check_all_button["command"] = self.check_all_rows
         check_all_button.grid(sticky="we")
 
-        for index, header in enumerate(headers, 1):
+        for index, header in enumerate(self.headers, 1):
             ttk.Button(self.header_frame, text=header).grid(
-                row=0, column=index, sticky="we", padx=5
+                row=0, column=index, sticky="we", padx=1
             )
 
     def check_all_rows(self):
@@ -137,13 +93,10 @@ class TableFrame(ttk.Frame):
     def populate_combobox_values(self, values):
         pass
 
-    def create_row(self, row_values=[], widget="Combobox"):
+    def create_row(self, widget_values=[], widget="Combobox"):
         # Row Frame widget
-        row_frame = ttk.Frame(self.data_frame, style="RowFrame.TFrame", padding=(5, 10))
-        row_frame.grid(
-            row=len(self.row_frames), column=0, sticky="news", padx=5, pady=5
-        )
-
+        row_frame = ttk.Frame(self.data_frame, style="RowFrame.TFrame", padding=(5, 8))
+        row_frame.grid( row=len(self.row_frames), column=0, sticky="news", pady=3)
         # store row_frame in row_frames list.
         self.row_frames.append(row_frame)
 
@@ -158,16 +111,22 @@ class TableFrame(ttk.Frame):
         check_row_button.grid(row=0, column=0, sticky="we")
 
         # Widget :: Comboboxes for a row
-        for i, values in enumerate(row_values, 1):
-            combo = ttk.Combobox(row_frame, values=values)
-            combo.current(0)
-            combo.grid(row=0, column=i, sticky="we", padx=5)
+        for i, (widget, values) in enumerate(widget_values, 1):
+            if widget == "Combobox":
+                combo = ttk.Combobox(row_frame, values=values)
+                combo.current(0)
+                combo.grid(row=0, column=i, sticky="ew", padx=1)
+            elif widget == "Entry":
+                entry = ttk.Entry(row_frame)
+                entry.grid(row=0, column=i, sticky="ew", padx=1)
+            else:
+                raise ValueError(f"Widget {widget} not supported!")
 
         # Growth size same as header growth size
         row_frame.rowconfigure(0, weight=1)
         # Make it dynamic as header_frame needed
-        for i in range(1, 6):
-            row_frame.columnconfigure(i, weight=1)
+        for i in range(1, len(widget_values)+1):
+            row_frame.columnconfigure(i, weight=10)
 
     def remove_by_index(self, index):
         self.row_frames[index].destroy()
@@ -206,18 +165,17 @@ class ActionFrame(ttk.Frame):
         import random
 
         # create random data
-        val = [
+        vals = [
             [random.randrange(100) for i in range(random.randrange(1, 10))]
-            for i in range(5)
-        ]
+            for i in range(4)
+        ] + [[]] * 4
 
-        # read rfile
-        data = Data()
-        a, b, c= data.prepare_values()
-        val = [a, b, c, [1, 2, 3], [3, 2, 1]]
+        widgets_name = ["Combobox"] * 4  + ["Entry"] * 4
 
-        self.table.create_row(row_values=val)
+        widget_values = list(zip(widgets_name, vals))
 
+        self.table.create_row(widget_values)
+ 
     def remove_row(self):
         self.table.remove_row()
 
@@ -232,10 +190,9 @@ class MainFrame(ttk.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
-        table = TableFrame(self, padding=10)
+        headers = ["hedaer " + str(i) for i in range(1, 9)]
+        table = TableFrame(self, headers)
         table.grid(row=0, column=0, sticky="news")
-        headers = ["hedaer " + str(i) for i in range(1, 6)]
-        table.create_header(headers)
 
         action = ActionFrame(self, table)
         action.grid(row=1, column=0, sticky="news")
@@ -251,11 +208,11 @@ class App(tk.Tk):
 
         # Root window options
         self.title("Table Like Widget")
-        self.geometry("600x400")
+        self.geometry("900x500")
 
         # Main frame
-        mainframe = MainFrame(self, relief="solid", padding=5)
-        mainframe.grid(row=0, column=0, sticky="news", padx=20, pady=20)
+        mainframe = MainFrame(self, padding=5)
+        mainframe.grid(row=0, column=0, sticky="news")
 
         # Growth rate
         self.rowconfigure(0, weight=1)
