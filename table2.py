@@ -10,29 +10,17 @@ class TableFrame(ttk.Frame):
         super().__init__(master, **kwargs)
 
         ### Vars
+        self.row_num = 0
         self.rows = []
+        self.rows_widget = []
         self.row_frames = []
         self.check_row_vars = []
         self.check_all_var = tk.BooleanVar(value=False)
 
-        ### self config
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=99)
-        self.columnconfigure(0, weight=1)
-
-        ### header 
-        self.header_frame = ttk.Frame(self)
-        self.header_frame.grid(row=0, column=0, sticky="we") 
-        self.header_frame.rowconfigure(0, weight=1)
+        ### self
+        
+        self.columnconfigure([*range(1, len(self.headers)+1)], weight=1)
         self.create_header()
-
-        ### Data frame
-        self.data_frame = ttk.Frame(self)
-        self.data_frame.grid(row=1, column=0, sticky="news")
-        self.data_frame.columnconfigure(0, weight=1)
-
-        for i in range(1, len(self.headers)+1):
-            self.columnconfigure(i, weight=1) 
 
     def on_check_all(self):
         state = self.check_all_var.get()
@@ -41,36 +29,36 @@ class TableFrame(ttk.Frame):
 
     def create_header(self):
         # Checkbutton 
-        check_all_button = ttk.Checkbutton(self.header_frame, variable=self.check_all_var, command=self.on_check_all)
-        check_all_button.grid(row=0, column=0, sticky="we")
+        check_all_button = ttk.Checkbutton(self, variable=self.check_all_var, command=self.on_check_all)
+        check_all_button.grid(row=self.row_num, column=0, sticky="we")
 
         # Header buttons
         for i, header in enumerate(self.headers, 1):
-            ttk.Button(self.header_frame, text=header).grid(row=0, column=i, sticky="we")
-            self.header_frame.columnconfigure(i, weight=1, uniform="a")
+            ttk.Button(self, text=header).grid(row=self.row_num, column=i, sticky="we")
+            # self.columnconfigure(i, weight=1, uniform="a")
+        self.row_num += 1
 
     def create_row(self, values=[]):
         # Row frame
-        row_frame = ttk.Frame(self.data_frame)
-        row_frame.grid(row=len(self.row_frames), column=0, sticky="we", columnspan=len(self.headers)+1)
-        self.row_frames.append(row_frame)
-
         # Checkbutton for a row
         check_row_var = tk.BooleanVar(value=False)
         self.check_row_vars.append(check_row_var)
-        check_row_button = ttk.Checkbutton(row_frame, variable=check_row_var)
-        check_row_button.grid(row=0, column=0)
+        check_row_button = ttk.Checkbutton(self, variable=check_row_var)
+        check_row_button.grid(row=self.row_num, column=0)
 
+        row_widgets = []
         # Widgets for a row
         for i, widget in enumerate(self.widgets, 1):
             if widget == "Combobox":
-                ttk.Combobox(row_frame, values=(1,2, 3)).grid(row=0, column=i, sticky="news")
+                w = ttk.Combobox(self, values=(1,2, 3))
             elif widget == "Entry":
-                ttk.Entry(row_frame).grid(row=0, column=i, sticky="news")
+                w = ttk.Entry(self)
             else:
                 raise ValueError("Error: Cannot create row. Unknown widget!!!")
-            row_frame.columnconfigure(i, weight=1, uniform="a")
-
+            w.grid(row=self.row_num, column=i, sticky="news")
+            row_widgets.append(w)
+        self.rows_widget.append(row_widgets)
+        self.row_num += 1
 
     def remove_row(self):
         checked_indeces = sorted(
