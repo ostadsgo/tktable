@@ -1,30 +1,62 @@
-
+from tkinter import ttk
 import tkinter as tk
 
-def on_button_click(button_name):
-    print(f"{button_name} clicked!")
+#NOTE: 
+# mainframe sticky must be `news`
+# 
 
-# Create the main window
-root = tk.Tk()
-root.title("Table-like Layout")
 
-# Create header
-header = ["Header 1", "Header 2", "Header 3"]
-for col, title in enumerate(header):
-    label = tk.Label(root, text=title, font=("Arial", 14, "bold"))
-    label.grid(row=0, column=col, padx=10, pady=5)
+def header(mainframe):
+    hf = ttk.Frame(mainframe)
+    hf.grid(row=0, column=0, sticky="we")
+    for i in range(5):
+        ttk.Button(hf, text="Header" + str(i)).grid(row=0, column=i, sticky="we", padx=5)
+        hf.columnconfigure(i, weight=1)
 
-# Create buttons in the header
-buttons = ["Button 1", "Button 2", "Button 3"]
-for col, button_name in enumerate(buttons):
-    button = tk.Button(root, text=button_name, command=lambda name=button_name: on_button_click(name))
-    button.grid(row=1, column=col, padx=10, pady=5)
+def data(mainframe):
+    df = ttk.Frame(mainframe)
+    df.grid(row=1, column=0, sticky="news")
+    df.columnconfigure(0, weight=1)
+    for i in range(3):
+        row_frame = ttk.Frame(df)
+        for j in range(5):
+            row_frame.grid(row=i, column=0, sticky="ew")
+            ttk.Combobox(row_frame).grid(row=0, column=j, sticky="we", padx=5, pady=5)
+            row_frame.columnconfigure(j, weight=1)
 
-# Create rows of entries
-for row in range(2, 5):  # Create 3 rows of entries
-    for col in range(len(header)):
-        entry = tk.Entry(root)
-        entry.grid(row=row, column=col, padx=10, pady=5)
 
-# Start the Tkinter event loop
-root.mainloop()
+
+
+def mainframe(root):
+    mf = ttk.Frame(root, padding=5, relief="sunken")
+    mf.grid(row=0, column=0, padx=5, pady=5, sticky="news")
+
+    mf.rowconfigure(0, weight=1)
+    mf.rowconfigure(1, weight=99)
+    mf.columnconfigure(0, weight=1)
+
+    # Header
+    header(mf)
+
+    # Data
+    data(mf)
+
+
+
+
+
+
+def app():
+    root = tk.Tk()
+    root.geometry("700x400")
+
+    # mainframe
+    mainframe(root)
+
+
+    root.rowconfigure(0, weight=1)
+    root.columnconfigure(0, weight=1)
+
+    root.mainloop()
+
+app()
