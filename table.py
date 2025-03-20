@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
+import customtkinter as ctk
 
 
-
-class TableFrame(ttk.Frame):
+# class TableFrame(ctk.CTkScrollableFrame):
+class TableFrame(ctk.CTkScrollableFrame):
     def __init__(self, master, **kwargs):
         self.headers = kwargs.pop("headers", [])
         self.widgets = kwargs.pop("widgets", ["Entry"])
@@ -20,9 +21,9 @@ class TableFrame(ttk.Frame):
         self.rowconfigure(1, weight=99)
         self.columnconfigure(0, weight=1)
 
-        ### header 
+        ### header
         self.header_frame = ttk.Frame(self)
-        self.header_frame.grid(row=0, column=0, sticky="we") 
+        self.header_frame.grid(row=0, column=0, sticky="news")
         self.header_frame.rowconfigure(0, weight=1)
         self.create_header()
 
@@ -31,28 +32,35 @@ class TableFrame(ttk.Frame):
         self.data_frame.grid(row=1, column=0, sticky="news")
         self.data_frame.columnconfigure(0, weight=1)
 
-        for i in range(1, len(self.headers)+1):
-            self.columnconfigure(i, weight=1) 
-
     def on_check_all(self):
         state = self.check_all_var.get()
         for var in self.check_row_vars:
             var.set(state)
 
     def create_header(self):
-        # Checkbutton 
-        check_all_button = ttk.Checkbutton(self.header_frame, variable=self.check_all_var, command=self.on_check_all)
+        # Checkbutton
+        self.header_frame.rowconfigure(0, weight=1)
+        check_all_button = ttk.Checkbutton(
+            self.header_frame, variable=self.check_all_var, command=self.on_check_all
+        )
         check_all_button.grid(row=0, column=0, sticky="we")
 
         # Header buttons
         for i, header in enumerate(self.headers, 1):
-            ttk.Button(self.header_frame, text=header).grid(row=0, column=i, sticky="we")
-            self.header_frame.columnconfigure(i, weight=1, uniform="a")
+            ttk.Button(self.header_frame, text=header).grid(
+                row=0, column=i, sticky="news"
+            )
+            self.header_frame.columnconfigure(i, weight=1)
 
     def create_row(self, values=[]):
         # Row frame
         row_frame = ttk.Frame(self.data_frame)
-        row_frame.grid(row=len(self.row_frames), column=0, sticky="we", columnspan=len(self.headers)+1)
+        row_frame.grid(
+            row=len(self.row_frames),
+            column=0,
+            sticky="we",
+            columnspan=len(self.headers) + 1,
+        )
         self.row_frames.append(row_frame)
 
         # Checkbutton for a row
@@ -64,13 +72,14 @@ class TableFrame(ttk.Frame):
         # Widgets for a row
         for i, widget in enumerate(self.widgets, 1):
             if widget == "Combobox":
-                ttk.Combobox(row_frame, values=(1,2, 3)).grid(row=0, column=i, sticky="news")
+                ttk.Combobox(row_frame, values=(1, 2, 3)).grid(
+                    row=0, column=i, sticky="news"
+                )
             elif widget == "Entry":
                 ttk.Entry(row_frame).grid(row=0, column=i, sticky="news")
             else:
                 raise ValueError("Error: Cannot create row. Unknown widget!!!")
-            row_frame.columnconfigure(i, weight=1, uniform="a")
-
+            row_frame.columnconfigure(i, weight=1, uniform="col")
 
     def remove_row(self):
         checked_indeces = sorted(
@@ -97,15 +106,15 @@ class ActionFrame(ttk.Frame):
 
         # self config
         self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=1)
+        self.columnconfigure([*range(5)], weight=1)
 
         # widgets
         pack_opts = dict(fill=tk.X, expand=True, side=tk.LEFT)
-        ttk.Button(self, text="+", command=self.add_row).pack(**pack_opts)
-        ttk.Button(self, text="-", command=self.remove_row).pack(**pack_opts)
-        ttk.Button(self, text="Import", command=self.import_data).pack(**pack_opts)
-        ttk.Button(self, text="Export", command=self.export_data).pack(**pack_opts)
-
+        ttk.Button(self, text="+", command=self.add_row).grid(row=0, column=0, sticky="we")
+        ttk.Button(self, text="-", command=self.remove_row).grid(row=0, column=1, sticky="we")
+        ttk.Button(self, text="Import", command=self.import_data).grid(row=0, column=2, sticky="we")
+        ttk.Button(self, text="Export", command=self.export_data).grid(row=0, column=3, sticky="we")
+        ttk.Button(self, text="Save PPT", command=self.saveas_ppt).grid(row=0, column=4, sticky="we")
 
     def add_row(self):
         values = []
@@ -113,9 +122,14 @@ class ActionFrame(ttk.Frame):
 
     def remove_row(self):
         self.table.remove_row()
+
     def import_data(self):
         pass
+
     def export_data(self):
+        pass
+
+    def saveas_ppt(self):
         pass
 
 
@@ -123,24 +137,23 @@ class MainFrame(ttk.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
-        headers = [f"header {i+1}" for i in range(8)]
+        headers = [f"header {i + 1}" for i in range(8)]
         ### Table
         widgets = [*["Combobox"] * 4, *["Entry"] * 4]
         # widgets = [*["Combobox"] * 4]
-        print(widgets)
         table = TableFrame(self, headers=headers, widgets=widgets)
+        print(widgets)
         table.grid(row=0, column=0, sticky="news")
 
         ### Actions
         ActionFrame(self, table=table).grid(row=1, column=0, sticky="nwes")
 
 
-
 class App(tk.Tk):
     def __init__(self, **kwargs):
         super().__init__()
         self.title("Table Example")
-        self.geometry("700x400")
+        self.geometry("650x400")
         self._ui()
         self._config()
 
@@ -162,8 +175,6 @@ def main():
     app = App()
     app.run()
 
+
 if __name__ == "__main__":
     main()
-
-
-
