@@ -12,7 +12,7 @@ class demo(tk.Tk):
         self.frame.grid_rowconfigure(0, weight=1)
         self.sheet = Sheet(
             self.frame,
-            data=[[1, 2, 3], [3, 2, 1 ]],
+            data=[[1, 2, 3], [3, 2, 1]],
         )
         self.sheet.enable_bindings()
         self.frame.grid(row=0, column=0, sticky="nswe")

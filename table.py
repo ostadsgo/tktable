@@ -1,6 +1,14 @@
+import csv
 import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
+
+def save_csv(header, rows):
+    with open("export.csv", "w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(header)
+        writer.writerows(rows)
+
 
 
 # class TableFrame(ctk.CTkScrollableFrame):
@@ -98,6 +106,13 @@ class TableFrame(ctk.CTkScrollableFrame):
         del self.row_frames[index]
         del self.check_row_vars[index]
 
+    def get_rows(self):
+        self.rows = [
+            [child.get() for child in frame.winfo_children()[1:]]
+            for frame in self.row_frames
+        ]
+        return self.rows
+
 
 class ActionFrame(ttk.Frame):
     def __init__(self, master, **kwargs):
@@ -109,12 +124,21 @@ class ActionFrame(ttk.Frame):
         self.columnconfigure([*range(5)], weight=1)
 
         # widgets
-        pack_opts = dict(fill=tk.X, expand=True, side=tk.LEFT)
-        ttk.Button(self, text="+", command=self.add_row).grid(row=0, column=0, sticky="we")
-        ttk.Button(self, text="-", command=self.remove_row).grid(row=0, column=1, sticky="we")
-        ttk.Button(self, text="Import", command=self.import_data).grid(row=0, column=2, sticky="we")
-        ttk.Button(self, text="Export", command=self.export_data).grid(row=0, column=3, sticky="we")
-        ttk.Button(self, text="Save PPT", command=self.saveas_ppt).grid(row=0, column=4, sticky="we")
+        ttk.Button(self, text="+", command=self.add_row).grid(
+            row=0, column=0, sticky="we"
+        )
+        ttk.Button(self, text="-", command=self.remove_row).grid(
+            row=0, column=1, sticky="we"
+        )
+        ttk.Button(self, text="Import", command=self.import_data).grid(
+            row=0, column=2, sticky="we"
+        )
+        ttk.Button(self, text="Export", command=self.export_data).grid(
+            row=0, column=3, sticky="we"
+        )
+        ttk.Button(self, text="Save PPT", command=self.saveas_ppt).grid(
+            row=0, column=4, sticky="we"
+        )
 
     def add_row(self):
         values = []
@@ -127,7 +151,8 @@ class ActionFrame(ttk.Frame):
         pass
 
     def export_data(self):
-        pass
+        rows = self.table.get_rows()
+        save_csv(self.table.headers, rows)
 
     def saveas_ppt(self):
         pass
